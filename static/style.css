@@ -1,0 +1,182 @@
+/* ============ 控台面板配色（Midas/Behringer 硬件语言） ============ */
+:root {
+  --bg: #14171c;            /* 机箱底色: 深炭蓝 */
+  --panel: #1d2129;         /* 通道条面板 */
+  --panel-edge: #2a303c;    /* 面板棱线 */
+  --panel-deep: #10131a;    /* 凹槽 */
+  --text: #e8e4da;          /* 背光暖白 */
+  --text-dim: #8a8f9a;
+  --amber: #ffb454;         /* 走带/播放头 LED 琥珀 */
+  --green: #59c265;         /* 播放键 LED */
+  --red: #e05252;           /* 静音 LED */
+  --radius: 6px;
+  --mono: "Cascadia Mono", Consolas, "JetBrains Mono", monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ============ 顶栏 ============ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--panel-edge);
+  background: linear-gradient(180deg, #191d25, #14171c);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.led {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px 1px rgba(255, 180, 84, .7);
+}
+.brand h1 { font-size: 17px; font-weight: 700; letter-spacing: .12em; }
+.brand .en {
+  font-family: var(--mono); font-size: 10px; font-weight: 400;
+  color: var(--text-dim); letter-spacing: .3em; margin-left: 8px; vertical-align: 2px;
+}
+.topbar-right { display: flex; gap: 10px; align-items: center; color: var(--text-dim); }
+
+/* ============ 通用 ============ */
+.view { max-width: 1180px; margin: 0 auto; padding: 26px 22px 60px; }
+.view-lead { color: var(--text-dim); margin-bottom: 18px; letter-spacing: .04em; }
+
+.btn {
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--panel-edge); border-radius: var(--radius);
+  padding: 8px 16px; font-size: 13px; font-family: inherit; cursor: pointer;
+  letter-spacing: .06em;
+  transition: border-color .15s, background .15s;
+}
+.btn:hover { border-color: var(--text-dim); }
+.btn:focus-visible, .tbtn:focus-visible, .chbtn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.btn-primary { border-color: var(--amber); color: var(--amber); }
+.btn-primary:hover { background: rgba(255, 180, 84, .1); }
+.btn[disabled] { opacity: .45; cursor: default; }
+
+/* ============ 文件列表 ============ */
+.file-list { display: flex; flex-direction: column; gap: 10px; }
+.file-row {
+  display: flex; align-items: center; gap: 18px;
+  background: var(--panel); border: 1px solid var(--panel-edge);
+  border-radius: var(--radius); padding: 14px 18px;
+}
+.file-name { font-size: 15px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-info { color: var(--text-dim); font-size: 12px; white-space: nowrap; }
+.file-empty { color: var(--text-dim); padding: 40px 0; text-align: center; }
+
+/* ============ 分离进度 ============ */
+.progress-card {
+  max-width: 620px; margin: 8vh auto 0;
+  background: var(--panel); border: 1px solid var(--panel-edge);
+  border-radius: var(--radius); padding: 34px 38px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.progress-title { font-size: 18px; font-weight: 700; letter-spacing: .05em; }
+.progress-stage { color: var(--amber); letter-spacing: .08em; }
+.progress-bar {
+  height: 10px; border-radius: 5px; background: var(--panel-deep);
+  border: 1px solid var(--panel-edge); overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #b97f2e, var(--amber));
+  transition: width .6s ease;
+}
+.progress-pct { font-size: 26px; color: var(--text); }
+.progress-hint { color: var(--text-dim); font-size: 12px; line-height: 1.7; }
+.progress-error {
+  color: var(--red); font-size: 11px; white-space: pre-wrap;
+  max-height: 200px; overflow: auto; background: var(--panel-deep);
+  padding: 10px; border-radius: var(--radius);
+}
+#btn-progress-back { align-self: flex-start; }
+
+/* ============ 走带条 ============ */
+.transport {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--panel); border: 1px solid var(--panel-edge);
+  border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px;
+  position: sticky; top: 10px; z-index: 5;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+}
+.tbtn {
+  width: 42px; height: 34px;
+  background: var(--panel-deep); color: var(--text);
+  border: 1px solid var(--panel-edge); border-radius: var(--radius);
+  font-size: 15px; cursor: pointer; transition: color .15s, border-color .15s;
+}
+.tbtn:hover { border-color: var(--text-dim); }
+.tbtn-play.playing { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(89, 194, 101, .25) inset; }
+.timecode { font-size: 20px; letter-spacing: .05em; }
+.tc-sep { color: var(--text-dim); margin: 0 8px; }
+#tc-total { color: var(--text-dim); }
+.transport-spacer { flex: 1; }
+.export-note { color: var(--text-dim); font-size: 12px; }
+
+/* ============ 通道机架（签名元素） ============ */
+.rack { display: flex; flex-direction: column; gap: 6px; }
+.channel {
+  display: grid;
+  grid-template-columns: 148px 210px 1fr;
+  align-items: stretch; gap: 0;
+  background: var(--panel); border: 1px solid var(--panel-edge);
+  border-radius: var(--radius); overflow: hidden;
+  min-height: 74px;
+}
+.channel.inactive { opacity: .55; }
+
+.scribble { display: flex; align-items: stretch; }
+.scribble-color { width: 6px; flex: none; }
+.scribble-text {
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; justify-content: center; min-width: 0;
+}
+.ch-label { font-size: 15px; font-weight: 700; letter-spacing: .1em; }
+.ch-badges { display: flex; gap: 4px; }
+.badge {
+  font-size: 10px; color: var(--text-dim);
+  border: 1px solid var(--panel-edge); border-radius: 3px; padding: 0 5px;
+  letter-spacing: .05em;
+}
+.ch-rms { font-size: 10px; color: var(--text-dim); }
+
+.ch-controls {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; border-left: 1px solid var(--panel-edge); border-right: 1px solid var(--panel-edge);
+  background: var(--panel-deep);
+}
+.chbtn {
+  width: 28px; height: 28px; flex: none;
+  background: var(--panel); color: var(--text-dim);
+  border: 1px solid var(--panel-edge); border-radius: 4px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: all .12s;
+}
+.chbtn-m.on { color: #fff; background: var(--red); border-color: var(--red); box-shadow: 0 0 8px rgba(224, 82, 82, .5); }
+.chbtn-s.on { color: #14171c; background: var(--amber); border-color: var(--amber); box-shadow: 0 0 8px rgba(255, 180, 84, .5); }
+
+.ch-fader { flex: 1; min-width: 60px; accent-color: var(--amber); cursor: pointer; }
+.ch-vol { font-size: 11px; color: var(--text-dim); width: 38px; text-align: right; flex: none; }
+
+.ch-wave { position: relative; background: var(--panel-deep); }
+.ch-wave canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+.rack-hint { color: var(--text-dim); font-size: 12px; margin-top: 14px; letter-spacing: .05em; }
+
+/* ============ 响应式 ============ */
+@media (max-width: 860px) {
+  .channel { grid-template-columns: 110px 1fr; grid-template-rows: auto auto; }
+  .ch-wave { grid-column: 1 / -1; height: 64px; }
+  .timecode { font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill { transition: none; }
+}

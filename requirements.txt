@@ -1,0 +1,12 @@
+# torch/torchaudio 单独装 CUDA 版, 见 setup.bat
+demucs
+fastapi
+uvicorn[standard]
+soundfile
+numpy
+# 以下为 MSST (BS-Roformer) 推理依赖
+ml_collections
+omegaconf
+beartype
+rotary-embedding-torch
+librosa

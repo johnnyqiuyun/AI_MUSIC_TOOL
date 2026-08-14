@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分轨工作台 · Stem Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="led"></span>
+    <h1>分轨工作台 <span class="en">STEM STUDIO</span></h1>
+  </div>
+  <div class="topbar-right" id="topbar-right"></div>
+</header>
+
+<!-- 视图 1: 选择文件 -->
+<main id="view-files" class="view">
+  <p class="view-lead">选择一首歌，AI 会把它拆成 8 条分轨：人声 · 鼓 · 贝斯 · 吉他 · 钢琴 · 小号 · 弦乐 · 其他</p>
+  <div id="file-list" class="file-list"></div>
+</main>
+
+<!-- 视图 2: 分离进度 -->
+<main id="view-progress" class="view" hidden>
+  <div class="progress-card">
+    <div class="progress-title" id="progress-song"></div>
+    <div class="progress-stage" id="progress-stage">排队中</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-pct mono" id="progress-pct">0%</div>
+    <p class="progress-hint">AI 正在分离分轨（GPU 加速），一首歌大约需要几分钟。两级流水线：Demucs 六轨 → BS-Roformer 提取小号与弦乐。</p>
+    <pre class="progress-error mono" id="progress-error" hidden></pre>
+    <button class="btn" id="btn-progress-back">返回列表</button>
+  </div>
+</main>
+
+<!-- 视图 3: 混音台 -->
+<main id="view-mixer" class="view" hidden>
+  <div class="transport">
+    <button class="tbtn" id="btn-rewind" title="回到开头">⏮</button>
+    <button class="tbtn tbtn-play" id="btn-play" title="播放 / 暂停">▶</button>
+    <div class="timecode mono"><span id="tc-now">00:00.0</span><span class="tc-sep">/</span><span id="tc-total">00:00.0</span></div>
+    <div class="transport-spacer"></div>
+    <span class="export-note" id="export-note"></span>
+    <button class="btn btn-primary" id="btn-export">导出混音 WAV</button>
+  </div>
+  <div id="rack" class="rack"></div>
+  <p class="rack-hint">M = 静音 · S = 独奏 · 拖动推子调音量 · 点击波形跳转播放位置</p>
+</main>
+
+<template id="tpl-channel">
+  <div class="channel">
+    <div class="scribble">
+      <span class="scribble-color"></span>
+      <div class="scribble-text">
+        <span class="ch-label"></span>
+        <span class="ch-badges"></span>
+        <span class="ch-rms mono"></span>
+      </div>
+    </div>
+    <div class="ch-controls">
+      <button class="chbtn chbtn-m" title="静音">M</button>
+      <button class="chbtn chbtn-s" title="独奏">S</button>
+      <input class="ch-fader" type="range" min="0" max="150" value="100" title="音量">
+      <span class="ch-vol mono">100%</span>
+    </div>
+    <div class="ch-wave"><canvas></canvas></div>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
