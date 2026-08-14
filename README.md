@@ -1,4 +1,4 @@
-# 分轨工作台 Stem Studio (AI_MUSIC_TOOL)
+# 分轨工作台 Stem Studio
 
 把整首歌的 WAV 用 AI 拆成 8 条分轨，在浏览器里查看波形、静音/独奏/调音量、实时试听，并导出混合后的新 WAV。全程本地运行（NVIDIA GPU 加速，无 GPU 自动退回 CPU）。
 
@@ -7,7 +7,7 @@
 仓库只含核心代码，大文件（PyTorch、推理框架、模型权重）由脚本自动下载：
 
 1. 安装 [uv](https://docs.astral.sh/uv/)：`powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`（还需要 git）
-2. `git clone https://github.com/johnnyqiuyun/AI_MUSIC_TOOL.git`
+2. `git clone https://github.com/johnnyqiuyun/stem-studio.git`
 3. 双击 `setup.bat`（装依赖约 2.4GB + 模型权重约 300MB；Demucs 权重首次分离时自动下载）
 
 ## 使用
