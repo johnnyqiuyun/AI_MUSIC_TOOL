@@ -18,6 +18,12 @@
 <!-- 视图 1: 选择文件 -->
 <main id="view-files" class="view">
   <p class="view-lead">选择一首歌，AI 会把它拆成 8 条分轨：人声 · 鼓 · 贝斯 · 吉他 · 钢琴 · 小号 · 弦乐 · 其他</p>
+  <div class="upload-row">
+    <input type="file" id="upload-input" accept=".wav,.flac,.mp3" hidden>
+    <button class="btn btn-primary" id="btn-upload">上传歌曲</button>
+    <div class="upload-progress" id="upload-progress" hidden><div class="upload-fill" id="upload-fill"></div></div>
+    <span class="file-info" id="upload-status">支持 WAV / FLAC / MP3，最大 500MB，只有你自己能看到</span>
+  </div>
   <div id="file-list" class="file-list"></div>
 </main>
 

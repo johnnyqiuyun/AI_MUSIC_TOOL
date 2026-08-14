@@ -7,5 +7,6 @@ __pycache__/
 models/msst/
 models/ckpt/
 
-# 分离输出与导出
+# 分离输出与导出、用户上传
 jobs/
+uploads/

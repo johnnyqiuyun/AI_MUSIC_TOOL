@@ -10,6 +10,7 @@ import json
 import math
 import os
 import re
+import shutil
 import sys
 import threading
 import traceback
@@ -40,13 +41,20 @@ EXPERIMENTAL = {"trumpet", "strings"}  # 社区模型, 标注实验性
 ACTIVE_THRESHOLD_DB = -50.0  # 整轨RMS低于此值视为「基本无内容」
 PEAK_BUCKETS = 4000
 
-JOBS = {}  # job_id -> {stage, percent, done, error, message}
-_GPU_LOCK = threading.Lock()
+JOBS = {}  # job_id -> {stage, percent, done, error}
+QUEUE_FILE = os.path.join(JOBS_DIR, "_queue.json")
+
+# GPU 一次只跑一首: 单工作线程 + 排队列表
+_queue_cv = threading.Condition()
+_pending = []  # [(job_id, src_path), ...] 等待中
+_current = None  # 正在跑的 job_id
+_worker_started = False
 
 
-def job_id_for(src_path: str) -> str:
+def job_id_for(src_path: str, owner: str | None = None) -> str:
     stem = os.path.splitext(os.path.basename(src_path))[0]
-    return re.sub(r"[^\w一-鿿\-]+", "_", stem)
+    slug = re.sub(r"[^\w一-鿿\-]+", "_", stem)
+    return f"{owner}__{slug}" if owner else slug
 
 
 def job_dir(job_id: str) -> str:
@@ -69,26 +77,87 @@ def _set(job_id, stage=None, percent=None, done=None, error=None):
         st["error"] = error
 
 
-def start_job(src_path: str, force: bool = False):
-    """启动后台分离线程。返回 (job_id, started)。"""
-    jid = job_id_for(src_path)
-    if job_finished(jid) and not force:
-        return jid, False
-    if jid in JOBS and not JOBS[jid]["done"] and JOBS[jid]["error"] is None:
-        return jid, False  # 已在跑
-    JOBS[jid] = {"stage": "排队中", "percent": 0.0, "done": False, "error": None}
-    t = threading.Thread(target=_run_job, args=(jid, src_path), daemon=True)
-    t.start()
+def _save_queue():
+    """排队列表落盘, 服务重启后可恢复。调用方需持有 _queue_cv。"""
+    try:
+        with open(QUEUE_FILE, "w", encoding="utf-8") as f:
+            json.dump([{"job_id": j, "src": s} for j, s in _pending], f, ensure_ascii=False)
+    except OSError:
+        pass
+
+
+def _ensure_worker():
+    global _worker_started
+    if not _worker_started:
+        _worker_started = True
+        threading.Thread(target=_worker, daemon=True).start()
+
+
+def _worker():
+    global _current
+    while True:
+        with _queue_cv:
+            while not _pending:
+                _queue_cv.wait()
+            jid, src = _pending.pop(0)
+            _current = jid
+            _save_queue()
+        try:
+            _separate(jid, src)
+            _set(jid, stage="完成", percent=100, done=True)
+        except Exception:
+            _set(jid, error=traceback.format_exc(), stage="出错", done=True)
+        with _queue_cv:
+            _current = None
+
+
+def start_job(src_path: str, force: bool = False, owner: str | None = None):
+    """把分离任务加入队列。返回 (job_id, started)。"""
+    jid = job_id_for(src_path, owner)
+    with _queue_cv:
+        if job_finished(jid) and not force:
+            return jid, False
+        if jid == _current or any(j == jid for j, _ in _pending):
+            return jid, False  # 已在跑或已排队
+        JOBS[jid] = {"stage": "排队中", "percent": 0.0, "done": False, "error": None}
+        _pending.append((jid, src_path))
+        _save_queue()
+        _queue_cv.notify()
+    _ensure_worker()
     return jid, True
 
 
-def _run_job(job_id: str, src_path: str):
-    try:
-        with _GPU_LOCK:
-            _separate(job_id, src_path)
-        _set(job_id, stage="完成", percent=100, done=True)
-    except Exception:
-        _set(job_id, error=traceback.format_exc(), stage="出错", done=True)
+def queue_position(job_id: str) -> int:
+    """0 = 正在跑或不在队列; N = 排在第 N 位。"""
+    with _queue_cv:
+        for i, (j, _) in enumerate(_pending):
+            if j == job_id:
+                return i + 1
+    return 0
+
+
+def restore_state():
+    """服务启动时调用: 清理上次中断的半成品目录, 恢复未完成的排队任务。"""
+    for d in os.listdir(JOBS_DIR):
+        p = os.path.join(JOBS_DIR, d)
+        if os.path.isdir(p) and not os.path.exists(os.path.join(p, "meta.json")):
+            shutil.rmtree(p, ignore_errors=True)
+    entries = []
+    if os.path.exists(QUEUE_FILE):
+        try:
+            with open(QUEUE_FILE, encoding="utf-8") as f:
+                entries = json.load(f)
+        except (OSError, ValueError):
+            entries = []
+    with _queue_cv:
+        for e in entries:
+            if os.path.isfile(e.get("src", "")) and not job_finished(e["job_id"]):
+                JOBS[e["job_id"]] = {"stage": "排队中", "percent": 0.0, "done": False, "error": None}
+                _pending.append((e["job_id"], e["src"]))
+        _save_queue()
+        if _pending:
+            _queue_cv.notify()
+    _ensure_worker()
 
 
 # ---------------------------------------------------------------- 第一级 Demucs

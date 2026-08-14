@@ -1,6 +1,7 @@
 # torch/torchaudio 单独装 CUDA 版, 见 setup.bat
 demucs
 fastapi
+python-multipart
 uvicorn[standard]
 soundfile
 numpy
